@@ -1,0 +1,5 @@
+1. Find out where to put get_trace function to make it easy to use
+
+2. Add function, to adjust x_lim and y_lim; automatic lenses would be nice
+
+3. Add rotation function to Actor class; It would by nice to automate rotation for the greatest symetry.
