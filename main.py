@@ -94,12 +94,8 @@ for key in traces.keys():
 
 def animate(i):
     for key in body.keys():
-        # if key=='Trace':
-        #     body[key].set_data(Human.coordinates[f'{key}'][0][:i], Human.coordinates[f'{key}'][1][i])
-        #     body[key].set_color('red')
-        # else:
-            body[key].set_data(Human.coordinates[f'{key}'][0][i], Human.coordinates[f'{key}'][1][i])
-            body[key].set_color('blue')
+        body[key].set_data(Human.coordinates[f'{key}'][0][i], Human.coordinates[f'{key}'][1][i])
+        body[key].set_color('blue')
 
     for key in traces.keys():
         body_traces[key].set_data(traces[f'{key}'][0][:i], traces[f'{key}'][1][:i])
