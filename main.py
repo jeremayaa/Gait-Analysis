@@ -18,11 +18,12 @@ human_blueprint = {
     }
 
 class Actor:
-    def __init__(self, df):
+    def __init__(self, df, axis=('x', 'z'), reference='Pelvis'):
         data = {}
         for segment in df.columns[:]:
             data[segment] = df[segment][1:].to_numpy()
         self.data = data
+        self.coordinates = self.fill_blueprint(axis, reference)
     
     def fill_blueprint(self, axis=('y', 'z'), reference='Pelvis'):
         """
@@ -47,28 +48,32 @@ class Actor:
             coordinates[limb] = (limb_coordinates_x, limb_coordinates_y)
 
         return coordinates  
+    
 
-def get_trace(coords, limb_part, blueprint=human_blueprint):
-    limb_part_found = False
-    
-    for key in blueprint.keys():
-        index = 0
-        for i in blueprint[key]:
-            if i == limb_part:
-                x = np.transpose(coords[key][0])[index]
-                y = np.transpose(coords[key][1])[index]
-                limb_part_found = True
-                break
-            else:
-                index += 1
-    
-    if limb_part_found:
-        return x, y
-    else:
-        raise ValueError(f"Limb part '{limb_part}' not found in the blueprint")
+    def get_trace(self, limb_part, blueprint=human_blueprint):
+        traces = {}
+        limb_part_found = False
+        
+        for key in blueprint.keys():
+            index = 0
+            for i in blueprint[key]:
+                if i == limb_part:
+                    x = np.transpose(self.coordinates[key][0])[index]
+                    y = np.transpose(self.coordinates[key][1])[index]
+                    limb_part_found = True
+                    break
+                else:
+                    index += 1
+        
+        traces[limb_part] = (x, y)
+
+        if limb_part_found:
+            return traces
+        else:
+            raise ValueError(f"Limb part '{limb_part}' not found in the blueprint")
 
 Human = Actor(df)
-cords = Human.fill_blueprint(axis=('x', 'z'))
+traces = Human.get_trace('Right Toe')
 
 fig, ax = plt.subplots(figsize=(5, 5))
 ax.set_aspect('equal')
@@ -77,22 +82,30 @@ ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 
 body = {}
-for key in cords.keys():
+for key in Human.coordinates.keys():
     body[key], = ax.plot([], [], 'o-', lw=2)
+    print(key)
 
-body['Trace'], = ax.plot([], [], '-', lw=1)
-trace_x, trace_y = get_trace(cords, "Right Toe")
+body_traces = {}
+for key in traces.keys():
+    body_traces[key], = ax.plot([], [], '-', lw=1)
+
+
 
 def animate(i):
     for key in body.keys():
-        if key=='Trace':
-            body[key].set_data(trace_x[:i], trace_y[:i])
-            body[key].set_color('red')
-        else:
-            body[key].set_data(cords[f'{key}'][0][i], cords[f'{key}'][1][i])
+        # if key=='Trace':
+        #     body[key].set_data(Human.coordinates[f'{key}'][0][:i], Human.coordinates[f'{key}'][1][i])
+        #     body[key].set_color('red')
+        # else:
+            body[key].set_data(Human.coordinates[f'{key}'][0][i], Human.coordinates[f'{key}'][1][i])
             body[key].set_color('blue')
 
-    return (*body.values(), ) 
+    for key in traces.keys():
+        body_traces[key].set_data(traces[f'{key}'][0][:i], traces[f'{key}'][1][:i])
+        body_traces[key].set_color('red')
+
+    return (*body.values(), *body_traces.values(),) 
 
 length = 2000
 ani = animation.FuncAnimation(
